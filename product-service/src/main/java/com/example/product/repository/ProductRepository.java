@@ -1,6 +1,6 @@
 package com.example.product.repository;
 
-import com.example.product.domain.Product;
+import com.example.product.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;

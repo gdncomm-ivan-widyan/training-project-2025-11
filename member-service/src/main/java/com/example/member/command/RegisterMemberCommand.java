@@ -1,7 +1,7 @@
-package com.example.member.service;
+package com.example.member.command;
 
 import com.example.common.command.Command;
-import com.example.member.domain.Member;
+import com.example.member.entity.Member;
 import com.example.member.exception.DuplicateEmailException;
 import com.example.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

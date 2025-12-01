@@ -1,6 +1,6 @@
 package com.example.member.config;
 
-import com.example.member.domain.Member;
+import com.example.member.entity.Member;
 import com.example.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
-package com.example.product.web;
+package com.example.product.controller;
 
-import com.example.product.domain.Product;
+import com.example.product.entity.Product;
 import com.example.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -1,6 +1,6 @@
-package com.example.member.service;
+package com.example.member.command;
 
-import com.example.member.domain.Member;
+import com.example.member.entity.Member;
 import com.example.member.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,6 @@
 package com.example.product.config;
 
-import com.example.product.domain.Product;
+import com.example.product.entity.Product;
 import com.example.product.model.ProductTag;
 import com.example.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;

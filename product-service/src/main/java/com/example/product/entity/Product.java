@@ -1,4 +1,4 @@
-package com.example.product.domain;
+package com.example.product.entity;
 
 import com.example.product.model.ProductTag;
 import lombok.AllArgsConstructor;
