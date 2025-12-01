@@ -2,21 +2,6 @@ server:
   port: 8080
 
 gateway:
-  jwt:
-    secret: change-this-secret-change-this-secret-1234
-
-    security:
-      public-paths:
-        - /swagger-ui/**
-        - /v3/api-docs/**
-        - /api/members/register
-        - /api/members/login
-        - /api/products/**
-
-      authenticated-paths:
-        - /api/cart/**
-        - /api/members/logout
-
   routes:
     - id: member
       pathPrefix: /api/members
@@ -35,6 +20,23 @@ gateway:
       targetBaseUrl: http://localhost:8083
       targetPathPrefix: /api/cart
       requiresAuth: true
+
+  jwt:
+    # move the secret here (change for real env)
+    secret: change-this-secret-change-this-secret-1234
+    ttlSeconds: 3600   # optional, for later use if you want
+
+  security:
+    public-paths:
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /api/members/register
+      - /api/members/login
+      - /api/products/**
+
+    authenticated-paths:
+      - /api/cart/**
+      - /api/members/logout
 
 springdoc:
   swagger-ui:

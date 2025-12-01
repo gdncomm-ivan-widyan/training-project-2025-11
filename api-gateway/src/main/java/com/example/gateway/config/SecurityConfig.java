@@ -1,7 +1,10 @@
 package com.example.gateway.config;
 
 import com.example.common.security.JwtService;
+import com.example.gateway.properties.GatewaySecurityProperties;
+import com.example.gateway.properties.JwtProperties;
 import com.example.gateway.security.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -13,33 +16,42 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+  private final GatewaySecurityProperties securityProps;
+  private final JwtProperties jwtProps;
 
   @Bean
   public JwtService jwtService() {
-    // TODO: move this secret to config later
-    return new JwtService("change-this-secret-change-this-secret-1234");
+    // Secret now comes from properties
+    return new JwtService(jwtProps.getSecret());
   }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            // Swagger / docs open
-            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+        .authorizeHttpRequests(auth -> {
 
-            // Member auth endpoints (register/login) open
-            .requestMatchers("/api/members/register", "/api/members/login").permitAll()
+          // Public paths
+          if (securityProps.getPublicPaths() != null) {
+            securityProps.getPublicPaths()
+                .forEach(path -> auth.requestMatchers(path).permitAll());
+          }
 
-            // Product browse endpoints open
-            .requestMatchers("/api/products/**").permitAll()
+          // Authenticated paths
+          if (securityProps.getAuthenticatedPaths() != null) {
+            securityProps.getAuthenticatedPaths()
+                .forEach(path -> auth.requestMatchers(path).authenticated());
+          }
 
-            // Cart + logout require auth
-            .requestMatchers("/api/cart/**", "/api/members/logout").authenticated()
-
-            // Anything else: for now permitAll (you can tighten later)
-            .anyRequest().permitAll())
-        .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+          // Everything else (for now)
+          auth.anyRequest().permitAll();
+        })
+        .addFilterBefore(
+            new JwtAuthFilter(jwtService, securityProps),
+            UsernamePasswordAuthenticationFilter.class
+        )
         .httpBasic(Customizer.withDefaults());
 
     return http.build();

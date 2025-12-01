@@ -11,6 +11,15 @@ import java.util.List;
 @ConfigurationProperties(prefix = "gateway.security")
 public class GatewaySecurityProperties {
 
+  /**
+   * Paths that are always public (permitAll).
+   * Example: /api/members/register, /api/members/login, /swagger-ui/**, etc.
+   */
   private List<String> publicPaths;
+
+  /**
+   * Paths that require authentication.
+   * Example: /api/cart/**, /api/members/logout, etc.
+   */
   private List<String> authenticatedPaths;
 }
