@@ -25,8 +25,9 @@ public class ProductDataLoader {
   @Bean
   CommandLineRunner initProducts() {
     return args -> {
-      if (repo.count() > 0)
+      if (repo.count() > 0) {
         return;
+      }
 
       log.info("Seeding 50,000 demo products");
       Random rnd = new Random(42);
@@ -34,6 +35,7 @@ public class ProductDataLoader {
       ProductTag[] allTags = ProductTag.values();
 
       for (int i = 1; i <= 50000; i++) {
+
         Product p = Product.builder()
             .name("Product " + i)
             .description("Demo product " + i)

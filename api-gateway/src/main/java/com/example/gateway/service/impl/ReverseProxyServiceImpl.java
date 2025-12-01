@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -20,9 +21,7 @@ public class ReverseProxyServiceImpl implements ReverseProxyService {
   private final RestTemplate restTemplate;
 
   @Override
-  public ResponseEntity<byte[]> forward(HttpServletRequest request,
-                                        byte[] body,
-                                        ResolvedRoute resolvedRoute) {
+  public ResponseEntity<byte[]> forward(HttpServletRequest request, byte[] body, ResolvedRoute resolvedRoute) {
 
     String requestUri = request.getRequestURI();
     String queryString = request.getQueryString();
@@ -31,9 +30,6 @@ public class ReverseProxyServiceImpl implements ReverseProxyService {
 
     // downstream path = targetPathPrefix + remainingPath
     String downstreamPath = def.targetPathPrefix() + resolvedRoute.remainingPath();
-
-    // Optional: normalize double slashes if needed
-    // downstreamPath = downstreamPath.replaceAll("//+", "/");
 
     String targetUrl = def.targetBaseUrl() + downstreamPath;
     if (queryString != null && !queryString.isBlank()) {
@@ -53,17 +49,19 @@ public class ReverseProxyServiceImpl implements ReverseProxyService {
 
     HttpEntity<byte[]> entity = new HttpEntity<>(body, headers);
 
-    ResponseEntity<byte[]> downstreamResponse =
-        restTemplate.exchange(URI.create(targetUrl), method, entity, byte[].class);
+    try {
+      ResponseEntity<byte[]> downstreamResponse =
+          restTemplate.exchange(URI.create(targetUrl), method, entity, byte[].class);
 
-    HttpHeaders responseHeaders = new HttpHeaders();
-    responseHeaders.putAll(downstreamResponse.getHeaders());
+      HttpHeaders responseHeaders = copySafeHeaders(downstreamResponse.getHeaders());
 
-    return new ResponseEntity<>(
-        downstreamResponse.getBody(),
-        responseHeaders,
-        downstreamResponse.getStatusCode()
-    );
+      return new ResponseEntity<>(downstreamResponse.getBody(), responseHeaders, downstreamResponse.getStatusCode());
+    } catch (HttpStatusCodeException ex) {
+      // in case someone later removes the custom error handler, we still behave as a good proxy
+      HttpHeaders responseHeaders = copySafeHeaders(ex.getResponseHeaders());
+
+      return new ResponseEntity<>(ex.getResponseBodyAsByteArray(), responseHeaders, ex.getStatusCode());
+    }
   }
 
   private HttpHeaders extractHeaders(HttpServletRequest request) {
@@ -80,5 +78,25 @@ public class ReverseProxyServiceImpl implements ReverseProxyService {
       }
     }
     return headers;
+  }
+
+  /**
+   * Copy only end-to-end headers, drop hop-by-hop headers
+   * that can break chunking / framing in the proxy response.
+   */
+  private HttpHeaders copySafeHeaders(HttpHeaders source) {
+    HttpHeaders target = new HttpHeaders();
+    if (source == null) {
+      return target;
+    }
+
+    source.forEach((name, values) -> {
+      if (!name.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING) && !name.equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)
+          && !name.equalsIgnoreCase(HttpHeaders.CONNECTION)) {
+        target.put(name, values);
+      }
+    });
+
+    return target;
   }
 }

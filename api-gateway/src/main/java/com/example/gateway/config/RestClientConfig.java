@@ -14,16 +14,10 @@ public class RestClientConfig {
   @Bean
   public RestTemplate restTemplate() {
     RestTemplate rt = new RestTemplate();
-    // Do NOT throw on 4xx/5xx; let us proxy the status & body
     rt.setErrorHandler(new ResponseErrorHandler() {
       @Override
-      public boolean hasError(ClientHttpResponse response) throws IOException {
+      public boolean hasError(ClientHttpResponse response) {
         return false;
-      }
-
-      @Override
-      public void handleError(ClientHttpResponse response) throws IOException {
-        // no-op
       }
     });
     return rt;

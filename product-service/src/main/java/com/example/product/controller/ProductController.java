@@ -1,10 +1,11 @@
 package com.example.product.controller;
 
-import com.example.product.entity.Product;
-import com.example.product.repository.ProductRepository;
+import com.example.product.dto.ProductDetailResponse;
+import com.example.product.dto.ProductSummaryResponse;
+import com.example.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,23 +13,21 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductController {
 
-  private final ProductRepository repo;
+  private final ProductService productService;
 
   @GetMapping
-  public Page<Product> list(@RequestParam(name = "page", defaultValue = "0") int page,
+  public ResponseEntity<Page<ProductSummaryResponse>> list(
+      @RequestParam(name = "page", defaultValue = "0") int page,
       @RequestParam(name = "size", defaultValue = "20") int size,
-      @RequestParam(name = "q", required = false) String q) {
-
-    var pageable = PageRequest.of(page, size);
-
-    if (q == null || q.isBlank()) {
-      return repo.findAll(pageable);
-    }
-    return repo.findByNameContainingIgnoreCase(q, pageable);
+      @RequestParam(name = "q", required = false) String q
+  ) {
+    return ResponseEntity.ok(productService.search(q, page, size));
   }
 
   @GetMapping("/{id}")
-  public Product detail(@PathVariable("id") String id) {
-    return repo.findById(id).orElseThrow();
+  public ResponseEntity<ProductDetailResponse> detail(
+      @PathVariable("id") String id
+  ) {
+    return ResponseEntity.ok(productService.getById(id));
   }
 }

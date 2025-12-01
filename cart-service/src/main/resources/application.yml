@@ -10,3 +10,6 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+product-service:
+  base-url: http://localhost:8082

@@ -1,34 +1,14 @@
 package com.example.cart.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
+import com.example.cart.dto.CartResponse;
 
-import java.util.Map;
+public interface CartService {
 
-@Service
-@RequiredArgsConstructor
-public class CartService {
+  void addItem(Long userId, String productId, int qty);
 
-  private final StringRedisTemplate redis;
+  CartResponse getCart(Long userId);
 
-  private String key(Long userId) {
-    return "cart:" + userId;
-  }
+  void removeItem(Long userId, String productId);
 
-  public void addItem(Long userId, String productId, int qty) {
-    redis.opsForHash().increment(key(userId), productId, qty);
-  }
-
-  public Map<Object, Object> getCart(Long userId) {
-    return redis.opsForHash().entries(key(userId));
-  }
-
-  public void removeItem(Long userId, String productId) {
-    redis.opsForHash().delete(key(userId), productId);
-  }
-
-  public void clear(Long userId) {
-    redis.delete(key(userId));
-  }
+  void clear(Long userId);
 }
